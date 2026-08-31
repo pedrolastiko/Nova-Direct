@@ -1,0 +1,43 @@
+# Déploiement de la PWA sur GitHub Pages.
+#
+# Le site est entièrement statique : aucune étape de compilation, on publie la
+# racine du dépôt telle quelle. Passer par Actions plutôt que par « Deploy from
+# a branch » apporte deux choses ici : un journal de déploiement daté, et
+# l'absence de traitement Jekyll (qui, en mode branche, ignore silencieusement
+# tout fichier ou dossier commençant par « _ »).
+
+name: Déploiement Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # permet aussi un déclenchement manuel depuis l'onglet Actions
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement à la fois. On ne coupe pas celui en cours : interrompre
+# une publication à mi-chemin laisserait le site dans un état incohérent.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .          # racine du dépôt, sans build
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
