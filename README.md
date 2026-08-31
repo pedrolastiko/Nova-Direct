@@ -15,16 +15,44 @@ HTTPS ci-dessous.
 
 ## Déployer sur GitHub Pages
 
-Le dépôt est <https://github.com/pedrolastiko/Nova-Direct>. Une fois les
-modifications commitées :
+Dépôt : <https://github.com/pedrolastiko/Nova-Direct>. Une fois en ligne, l'app
+est servie à <https://pedrolastiko.github.io/Nova-Direct/>.
 
-```bash
-git push origin main
-```
+Le site est **entièrement statique, sans étape de build**. Deux voies possibles,
+à choisir une fois pour toutes dans **Settings → Pages → Source**.
 
-Puis, une seule fois, dans le dépôt : **Settings → Pages → Source: Deploy from a
-branch → `main` / `/ (root)`**. L'app est en ligne sous une minute à
-<https://pedrolastiko.github.io/Nova-Direct/>.
+### Voie 1 — Deploy from a branch (la plus simple)
+
+**Settings → Pages → Source : Deploy from a branch → `main` / `/ (root)`.**
+Rien d'autre à installer, aucun fichier de configuration. Chaque push sur `main`
+republie le site.
+
+Une seule subtilité : ce mode fait passer le dépôt par **Jekyll**, qui ignore
+silencieusement tout fichier ou dossier commençant par `_`. Le fichier
+`.nojekyll` à la racine désactive ce traitement — ne le supprimez pas.
+
+### Voie 2 — GitHub Actions
+
+**Settings → Pages → Source : GitHub Actions.** Le workflow
+`.github/workflows/pages.yml` prend alors le relais : il publie la racine du
+dépôt à chaque push sur `main`, et peut aussi être déclenché à la main depuis
+l'onglet **Actions** (`workflow_dispatch`).
+
+Ce qu'elle apporte de plus : un journal de déploiement daté, et l'absence de
+traitement Jekyll. Ce qu'elle coûte : un fichier de plus et des exécutions à
+surveiller. **Sans étape de build, la voie 1 suffit** — l'intérêt n'apparaît que
+le jour où il faudra générer quelque chose avant publication.
+
+Les deux voies sont exclusives : le réglage **Source** décide laquelle
+s'applique.
+
+### Chemins relatifs
+
+Le site est servi depuis le sous-répertoire `/Nova-Direct/`, pas depuis la
+racine du domaine. Tous les chemins sont donc relatifs — `start_url: "."` dans
+le manifeste, `register('sw.js')` pour le service worker, `logos/…` pour les
+images. **Une seule barre oblique de tête suffirait à tout casser** en pointant
+vers la racine du domaine.
 
 Tous les chemins sont relatifs (`start_url: "."`, `register('sw.js')`), le
 sous-répertoire du dépôt ne pose donc aucun problème.
