@@ -1,0 +1,5 @@
+# Réglages locaux de l'outillage, propres à la machine
+.claude/
+
+# macOS
+.DS_Store

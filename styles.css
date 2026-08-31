@@ -1,0 +1,519 @@
+/* Nova — PWA d'écoute des webradios Radio Nova.
+   Thème sombre unique : c'est une app de radio, souvent lancée le soir. */
+
+:root {
+  --accent: #ff6b35;
+  --ink: #f7f5f4;
+  --ink-dim: rgba(247, 245, 244, 0.58);
+  --ink-faint: rgba(247, 245, 244, 0.34);
+  --bg: #0c0b0d;
+  --surface: rgba(255, 255, 255, 0.07);
+  --surface-hi: rgba(255, 255, 255, 0.13);
+  --hairline: rgba(255, 255, 255, 0.11);
+  --pad: 20px;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+/* Plusieurs règles ci-dessous imposent un `display`, qui l'emporterait sur
+   l'attribut `hidden`. On rétablit la priorité une bonne fois pour toutes. */
+[hidden] { display: none !important; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- fond ---------- */
+
+.backdrop { position: fixed; inset: 0; z-index: 0; }
+
+.backdrop-art {
+  position: absolute;
+  inset: -18%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(52px) saturate(1.5);
+  opacity: 0;
+  transform: scale(1.15);
+  transition: opacity 0.7s ease, background-image 0.4s ease;
+}
+.backdrop-art.on { opacity: 0.5; }
+
+.backdrop-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 70% at 50% 8%, var(--accent) 0%, transparent 62%);
+  opacity: 0.3;
+  transition: background 0.6s ease;
+}
+
+.backdrop-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(12, 11, 13, 0.5) 0%, rgba(12, 11, 13, 0.82) 46%, var(--bg) 100%);
+}
+
+/* ---------- structure ---------- */
+
+.app {
+  position: relative;
+  z-index: 1;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  padding: calc(env(safe-area-inset-top) + 8px) 0 calc(env(safe-area-inset-bottom) + 10px);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px var(--pad) 4px;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.brand-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 26px; height: 26px;
+  flex: none;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--accent);
+  color: var(--accent-ink, #fff);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  transition: background 0.4s ease;
+}
+
+/* Miniature de la station. Même cadrage que la grande pochette : c'en est la
+   réduction exacte, pas un cadrage différent. */
+.brand-mark img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.icon-btn {
+  position: relative;
+  flex: none;
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.icon-btn:active { background: var(--surface-hi); }
+.icon-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+
+.sleep-badge {
+  position: absolute;
+  right: -2px; bottom: -2px;
+  min-width: 19px;
+  padding: 1px 4px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--accent-ink, #fff);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+}
+
+/* ---------- pochette + titre ---------- */
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 4vh, 34px);
+  padding: 8px var(--pad);
+  min-height: 0;
+}
+
+.art {
+  position: relative;
+  width: min(68vw, 30vh, 300px);
+  aspect-ratio: 1;
+  border-radius: 20px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(150deg, var(--accent), rgba(0, 0, 0, 0.75));
+  box-shadow: 0 26px 60px -18px rgba(0, 0, 0, 0.85), inset 0 0 0 1px var(--hairline);
+  transition: background 0.5s ease;
+}
+
+.art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Les logos de station sont en portrait (806×1000) et composés dans leur
+   moitié haute, le bas étant vide. Cadrés depuis le haut plutôt qu'au centre,
+   le lettrage reste entier et le vide part hors champ. */
+.art img.is-logo { object-position: center top; }
+
+.art-fallback {
+  font-size: 26vw;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: rgba(255, 255, 255, 0.9);
+  mix-blend-mode: soft-light;
+}
+@media (min-width: 480px) { .art-fallback { font-size: 120px; } }
+
+.track { text-align: center; max-width: 100%; }
+
+.track-artist {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 7px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-title {
+  font-size: clamp(20px, 5.6vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.22;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.track-link {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-dim);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.track-link:active { background: var(--surface-hi); }
+
+/* ---------- transport ---------- */
+
+.transport {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 4px var(--pad) 18px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  height: 14px;
+}
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.status[data-state="live"] { color: var(--accent); }
+.status[data-state="live"] .dot { animation: pulse 2.2s ease-in-out infinite; }
+.status[data-state="error"] { color: #ff8080; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+.play-wrap { position: relative; display: inline-grid; place-items: center; }
+
+/* Bouton d'arrêt complet, en pastille sur le bord bas-droit du bouton lecture.
+   La bordure reprend la couleur du fond pour le détacher du disque blanc. */
+.stop {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 34px; height: 34px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  background: #3a363f;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+.stop:active { transform: scale(0.9); background: #4a454f; }
+.stop svg { width: 15px; height: 15px; fill: currentColor; }
+
+.play {
+  width: 78px; height: 78px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #101014;
+  cursor: pointer;
+  box-shadow: 0 14px 34px -12px rgba(0, 0, 0, 0.9);
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+.play:active { transform: scale(0.94); }
+.play svg { width: 34px; height: 34px; fill: currentColor; grid-area: 1 / 1; }
+
+.play .ico-pause, .play .ico-spinner { display: none; }
+.play[data-mode="playing"] .ico-play { display: none; }
+.play[data-mode="playing"] .ico-pause { display: block; }
+.play[data-mode="loading"] .ico-play { display: none; }
+.play[data-mode="loading"] .ico-spinner {
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 20 40;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- carrousel de stations ----------
+   Défilement horizontal à aimantation : la tuile qui s'immobilise au centre
+   devient la station courante. Le remplissage latéral vaut la moitié de la
+   largeur visible moins la moitié d'une tuile, ce qui permet à la première et
+   à la dernière d'atteindre le centre. */
+
+:root { --tile: 78px; }
+
+.tiles {
+  /* Positionné pour être l'offsetParent des tuiles : sans ça, leur offsetLeft
+     se mesure depuis .app et les calculs de centrage ne tombent juste que par
+     coïncidence, tant que le carrousel commence à x=0. */
+  position: relative;
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 14px calc(50% - var(--tile) / 2) 10px;
+  border-top: 1px solid var(--hairline);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.tiles::-webkit-scrollbar { display: none; }
+
+.tile {
+  flex: none;
+  width: var(--tile);
+  scroll-snap-align: center;
+  display: grid;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0.42;
+  transform: scale(0.88);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.tile-art {
+  width: var(--tile);
+  height: var(--tile);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--chip, var(--surface));
+  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.8);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition: outline-color 0.22s ease;
+}
+.tile-art img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+
+.tile-name {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink-dim);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.tile[aria-current="true"] {
+  opacity: 1;
+  transform: scale(1);
+}
+.tile[aria-current="true"] .tile-art { outline-color: var(--chip, var(--accent)); }
+.tile[aria-current="true"] .tile-name { color: var(--ink); }
+
+/* ---------- feuille du minuteur ---------- */
+
+.sheet-wrap { position: fixed; inset: 0; z-index: 20; display: grid; align-items: end; }
+.sheet-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); }
+
+.sheet {
+  position: relative;
+  margin: 10px;
+  margin-bottom: calc(env(safe-area-inset-bottom) + 10px);
+  padding: 20px;
+  border-radius: 22px;
+  background: #1a181c;
+  box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.6);
+  animation: rise 0.22s ease-out;
+}
+@keyframes rise { from { transform: translateY(16px); opacity: 0; } }
+
+.sheet h2 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 14px;
+  text-align: center;
+}
+
+.sheet-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.sheet button {
+  padding: 15px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sheet button:active { background: var(--surface-hi); }
+.sheet button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink, #fff); }
+
+.sheet-cancel { width: 100%; margin-top: 8px; color: var(--ink-dim) !important; }
+
+/* ---------- toast ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 84px);
+  transform: translateX(-50%);
+  z-index: 30;
+  max-width: calc(100vw - 40px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(30, 28, 33, 0.96);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: center;
+  animation: rise 0.2s ease-out;
+}
+
+/* ---------- diagnostic (#diag) ---------- */
+
+.diag {
+  position: fixed;
+  inset: auto 10px calc(env(safe-area-inset-bottom) + 10px) 10px;
+  z-index: 40;
+  padding: 18px;
+  border-radius: 20px;
+  background: #17151a;
+  box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.7);
+  font-size: 13.5px;
+  max-height: 80dvh;
+  overflow-y: auto;
+}
+
+.diag h2 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 12px;
+}
+
+.diag p {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--hairline);
+  line-height: 1.35;
+}
+.diag p span {
+  margin-left: auto;
+  padding-left: 10px;
+  color: var(--ink-faint);
+  font-size: 12px;
+  text-align: right;
+  flex: none;
+  max-width: 45%;
+}
+.diag p b { flex: none; width: 12px; }
+.diag .ok b { color: #3bbf5e; }
+.diag .ko b { color: #ff8080; }
+
+.diag-hint {
+  border-bottom: 0 !important;
+  color: var(--ink-dim);
+  font-size: 12.5px;
+  display: block !important;
+}
+
+.diag button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 13px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
