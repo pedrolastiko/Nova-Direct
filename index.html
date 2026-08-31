@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Nova</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="description" content="Les webradios de Radio Nova, en direct.">
+<meta name="theme-color" content="#0c0b0d">
+
+<!-- installation sur l'écran d'accueil iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nova">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- fond : pochette floutée + halo à la couleur de la station -->
+<div class="backdrop" aria-hidden="true">
+  <div class="backdrop-art" id="backdropArt"></div>
+  <div class="backdrop-glow"></div>
+  <div class="backdrop-veil"></div>
+</div>
+
+<div class="app">
+
+  <header class="bar">
+    <div class="brand">
+      <span class="brand-mark">
+        <img id="brandThumb" alt="" hidden>
+        <span id="brandLetter">N</span>
+      </span>
+      <span class="brand-name" id="stationName">Radio Nova</span>
+    </div>
+    <button class="icon-btn" id="sleepBtn" type="button" aria-haspopup="dialog" aria-label="Minuteur de veille">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v5l3.5 2"/><circle cx="12" cy="12" r="9"/></svg>
+      <span class="sleep-badge" id="sleepBadge" hidden></span>
+    </button>
+  </header>
+
+  <main class="stage">
+    <div class="art" id="art">
+      <img id="artImg" alt="" hidden>
+      <span class="art-fallback" id="artFallback">N</span>
+    </div>
+
+    <div class="track">
+      <p class="track-artist" id="trackArtist">Radio Nova</p>
+      <p class="track-title" id="trackTitle">Le grand mix</p>
+      <a class="track-link" id="trackLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Écouter le titre ↗</a>
+    </div>
+  </main>
+
+  <section class="transport">
+    <p class="status" id="status"><span class="dot" id="statusDot"></span><span id="statusText">Prêt</span></p>
+    <div class="play-wrap">
+      <button class="play" id="playBtn" type="button" aria-label="Lecture">
+        <svg class="ico-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+        <svg class="ico-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.5h3v13h-3zM12.5 5.5h3v13h-3z"/></svg>
+        <svg class="ico-spinner" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/></svg>
+      </button>
+      <button class="stop" id="stopBtn" type="button" aria-label="Arrêter la lecture" title="Arrêter" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7.5" y="7.5" width="9" height="9" rx="1.6"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <nav class="tiles" id="stations" aria-label="Webradios"></nav>
+
+</div>
+
+<!-- minuteur de veille -->
+<div class="sheet-wrap" id="sleepSheet" hidden>
+  <div class="sheet-scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Minuteur de veille">
+    <h2>Minuteur de veille</h2>
+    <div class="sheet-options">
+      <button type="button" data-sleep="15">15 min</button>
+      <button type="button" data-sleep="30">30 min</button>
+      <button type="button" data-sleep="60">1 heure</button>
+      <button type="button" data-sleep="120">2 heures</button>
+    </div>
+    <button type="button" class="sheet-cancel" data-sleep="0">Désactiver</button>
+  </div>
+</div>
+
+<p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
+
+<script src="app.js"></script>
+</body>
+</html>
